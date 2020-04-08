@@ -117,6 +117,10 @@
                 <div class="form-group col-md-7">
                     <label for="description">Descrição</label>
                     <input type="text" class="form-control" id="description" formControlName="description">
+
+                    <div class="text-danger" *ngIf="entryForm.get('description').invalid && entryForm.get('description').touched">
+                        <div *ngIf="entryForm.get('description').errors.required">Dados obrigatórios</div>
+                    </div>
                 </div>
             </div>
         </div>

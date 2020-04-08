@@ -34,7 +34,7 @@ export class EntryService {
 
   create(entry: Entry): Observable<Entry> {
     /* Isso só é necessário pois usa o in-memory, para um server normal, não precisaria */
-    return this.categoryService.getById(entry.id).pipe(
+    return this.categoryService.getById(entry.categoryId).pipe(
       flatMap(categ => {
         entry.category = categ;
 
