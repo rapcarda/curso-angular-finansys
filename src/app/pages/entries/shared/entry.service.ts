@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { map, catchError, flatMap } from 'rxjs/operators';
 import { Entry } from './entry.model';
+import { CategoryService } from '../../categories/shared/category.service';
 
 @Injectable({
   providedIn: 'root'
@@ -12,7 +13,7 @@ export class EntryService {
   /* No in-memory esta retornando entries */
   private apiPath = 'api/entries';
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private categoryService: CategoryService) { }
 
   // METHODS
   getall(): Observable<Entry[]> {
@@ -32,19 +33,32 @@ export class EntryService {
   }
 
   create(entry: Entry): Observable<Entry> {
-    return this.http.post(this.apiPath, entry).pipe(
-      catchError(this.handleError),
-      map(this.jsonDataToEntry)
+    /* Isso só é necessário pois usa o in-memory, para um server normal, não precisaria */
+    return this.categoryService.getById(entry.id).pipe(
+      flatMap(categ => {
+        entry.category = categ;
+
+        return this.http.post(this.apiPath, entry).pipe(
+          catchError(this.handleError),
+          map(this.jsonDataToEntry)
+        );
+      })
     );
   }
 
   update(entry: Entry): Observable<Entry> {
     const url = this.apiPath + '/' + entry.id;
-    // retornar a propria categoria, por que o in-memory-db, no put não retorna nada,
-    // por isso força o retorno. Mas se for um servidor real, será devolvido o objeto novo
-    return this.http.put(url, entry).pipe(
-      catchError(this.handleError),
-      map(() => entry)
+    return this.categoryService.getById(entry.id).pipe(
+      flatMap(categ => {
+        entry.category = categ;
+
+        // retornar a propria categoria, por que o in-memory-db, no put não retorna nada,
+        // por isso força o retorno. Mas se for um servidor real, será devolvido o objeto novo
+        return this.http.put(url, entry).pipe(
+          catchError(this.handleError),
+          map(() => entry)
+        );
+      })
     );
   }
 
