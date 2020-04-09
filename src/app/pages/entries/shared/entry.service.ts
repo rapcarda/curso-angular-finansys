@@ -11,7 +11,9 @@ import { CategoryService } from '../../categories/shared/category.service';
 export class EntryService extends BaseResourceService<Entry> {
 
   constructor(protected injector: Injector, private categoryService: CategoryService) {
-    super('api/entries', injector);
+    // No ultimo parametro esta passando uma função a ser executada, por isso sem o ()
+    // quando passa função sem (), ela não é executada
+    super('api/entries', injector, Entry.fromJson);
   }
 
   // METHODS
@@ -36,19 +38,5 @@ export class EntryService extends BaseResourceService<Entry> {
         return super.update(entry);
       })
     );
-  }
-
-  // PRIVATE METHODS
-  protected jsonDataToResource(jsonData: any): Entry {
-    return Object.assign(new Entry(), jsonData)
-  }
-
-  protected jsonDataToResources(jsonData: any[]): Entry[] {
-    const entries: Entry[] = [];
-    jsonData.forEach(el => {
-      const entry = Object.assign(new Entry(), el);
-      entries.push(entry);
-    });
-    return entries;
   }
 }

@@ -97,7 +97,7 @@ export class EntryFormComponent implements OnInit {
 
   // PRIVATE METHODS
   private createEntry() {
-    const entry: Entry = Object.assign(new Entry(), this.entryForm.value);
+    const entry: Entry = Entry.fromJson(this.entryForm.value);
     this.entryService.create(entry).subscribe(
       entr => this.actionsForSuccess(entr),
       error => this.actionsForError(error)
@@ -105,7 +105,7 @@ export class EntryFormComponent implements OnInit {
   }
 
   private updateEntry() {
-    const entry: Entry = Object.assign(new Entry(), this.entryForm.value);
+    const entry: Entry = Entry.fromJson(this.entryForm.value);
 
     this.entryService.update(entry)
       .subscribe(
