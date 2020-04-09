@@ -38,6 +38,14 @@ export class CategoryFormComponent implements OnInit {
     this.setCurrentAction();
     this.buildCategoryForm();
     this.loadCategory();
+    toastr.options.closeButton = true;
+    toastr.options.progressBar = true;
+
+    toastr.options.positionClass = 'toast-bottom-left';
+    toastr.options.extendedTimeOut = 0;
+    toastr.options.timeOut = 2000;
+    toastr.options.fadeOut = 250;
+    toastr.options.fadeIn = 250;
   }
 
   // Este método é chamado assim que estiver tudo carregado na pagina

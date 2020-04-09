@@ -29,7 +29,7 @@ export class EntryService extends BaseResourceService<Entry> {
   }
 
   update(entry: Entry): Observable<Entry> {
-    return this.categoryService.getById(entry.id).pipe(
+    return this.categoryService.getById(entry.categoryId).pipe(
       flatMap(categ => {
         entry.category = categ;
 
