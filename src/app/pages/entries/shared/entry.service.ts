@@ -1,86 +1,49 @@
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { map, catchError, flatMap } from 'rxjs/operators';
+import { Injectable, Injector } from '@angular/core';
+import { BaseResourceService } from 'src/app/shared/services/base-resource.service';
+import { Observable } from 'rxjs';
+import { flatMap } from 'rxjs/operators';
 import { Entry } from './entry.model';
 import { CategoryService } from '../../categories/shared/category.service';
 
 @Injectable({
   providedIn: 'root'
 })
-export class EntryService {
+export class EntryService extends BaseResourceService<Entry> {
 
-  /* No in-memory esta retornando entries */
-  private apiPath = 'api/entries';
-
-  constructor(private http: HttpClient, private categoryService: CategoryService) { }
+  constructor(protected injector: Injector, private categoryService: CategoryService) {
+    super('api/entries', injector);
+  }
 
   // METHODS
-  getall(): Observable<Entry[]> {
-    return this.http.get(this.apiPath).pipe(
-      catchError(this.handleError),
-      map(this.jsonDataToEntries)
-    );
-  }
-
-  getById(id: number): Observable<Entry> {
-    // const url = `$(this.apiPath)/$(id)`; não sei pq não funcionou
-    const url = this.apiPath + '/' + id;
-    return this.http.get(url).pipe(
-      catchError(this.handleError),
-      map(this.jsonDataToEntry)
-    );
-  }
-
   create(entry: Entry): Observable<Entry> {
     /* Isso só é necessário pois usa o in-memory, para um server normal, não precisaria */
     return this.categoryService.getById(entry.categoryId).pipe(
       flatMap(categ => {
         entry.category = categ;
 
-        return this.http.post(this.apiPath, entry).pipe(
-          catchError(this.handleError),
-          map(this.jsonDataToEntry)
-        );
+        return super.create(entry);
       })
     );
   }
 
   update(entry: Entry): Observable<Entry> {
-    const url = this.apiPath + '/' + entry.id;
     return this.categoryService.getById(entry.id).pipe(
       flatMap(categ => {
         entry.category = categ;
 
         // retornar a propria categoria, por que o in-memory-db, no put não retorna nada,
         // por isso força o retorno. Mas se for um servidor real, será devolvido o objeto novo
-        return this.http.put(url, entry).pipe(
-          catchError(this.handleError),
-          map(() => entry)
-        );
+        return super.update(entry);
       })
     );
   }
 
-  delete(id: number): Observable<any> {
-    const url = this.apiPath + '/' + id;
-    return this.http.delete(url).pipe(
-      catchError(this.handleError),
-      map(() => null)
-    );
-  }
-
   // PRIVATE METHODS
-  private handleError(error: any): Observable<any> {
-    console.log('ERRO NA REQUISIÇÃO => ', error);
-    return throwError(error);
-  }
-
-  private jsonDataToEntry(jsonData: any): Entry {
+  protected jsonDataToResource(jsonData: any): Entry {
     return Object.assign(new Entry(), jsonData)
   }
 
-  private jsonDataToEntries(jsonData: any[]): Entry[] {
+  protected jsonDataToResources(jsonData: any[]): Entry[] {
     const entries: Entry[] = [];
     jsonData.forEach(el => {
       const entry = Object.assign(new Entry(), el);
