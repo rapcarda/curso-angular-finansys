@@ -14,6 +14,7 @@
         <div class="card-header">
             Informações sobre a categoria
         </div>
+        <app-server-error-message [server-error-messages]="serverErrorMessages"></app-server-error-message>
         <div class="card-body">
             <div class="form-row">
                 <div class="form-group col-md4">
@@ -35,15 +36,6 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <div class="alert alert-danger mt-4" *ngIf="serverErrorMessages">
-        <strong>Erro no servidor</strong>
-        <ul>
-            <li *ngFor="let error of serverErrorMessages">
-                {{error}}
-            </li>
-        </ul>
     </div>
 
     <button [disabled]="submittingForm || resourceForm.invalid" type="submit" class="btn btn-primary btn-lg float-right mt-3">Salvar</button>
