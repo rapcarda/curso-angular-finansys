@@ -3,7 +3,8 @@ import { Category } from '../../categories/shared/category.model';
 import { CategoryService } from '../../categories/shared/category.service';
 import { Entry } from '../../entries/shared/entry.model';
 import { EntryService } from '../../entries/shared/entry.service';
-// import currencyFormatter from 'currency-formatter';
+import currencyFormatter from 'currency-formatter';
+import toastr from 'toastr';
 
 @Component({
   selector: 'app-reports',
@@ -41,6 +42,7 @@ export class ReportsComponent implements OnInit {
     this.categoryService.getall().subscribe(
       cat => this.categories = cat
     );
+    this.configureToastr();
   }
 
   generateReports() {
@@ -51,8 +53,99 @@ export class ReportsComponent implements OnInit {
       alert('Você precisa selecionar mês e ano para gerar os relatórios');
     }
     else {
-      this.entryService.getByMonthAndYear(month, year);
+      this.entryService.getByMonthAndYear(month, year).subscribe(
+        this.setValues.bind(this)
+      );
     }
+  }
+
+  private setValues(entries: Entry[]) {
+    this.entries = entries;
+    this.calculateBalance();
+    this.setChartData();
+
+    if (entries.length > 0) {
+      toastr.success('Gráfico gerado com sucesso!');
+    }
+    else {
+      toastr.info('Nenhuma informação para a seleção informada.');
+    }
+  }
+
+  private calculateBalance() {
+    let expenseTotal = 0;
+    let revenueTotal = 0;
+
+    this.entries.forEach(entry => {
+      if (entry.type === 'revenue') {
+        revenueTotal += currencyFormatter.unformat(entry.amount, { code: 'BRL' });
+      }
+      else {
+        expenseTotal += currencyFormatter.unformat(entry.amount, { code: 'BRL' });
+      }
+    });
+
+    this.expenseTotal = currencyFormatter.format(expenseTotal, { code: 'BRL'});
+    this.revenueTotal =  currencyFormatter.format(revenueTotal, { code: 'BRL'});
+    this.balance = currencyFormatter.format(revenueTotal - expenseTotal, { code: 'BRL'});
+  }
+
+  private setChartData() {
+    this.revenueChartData = this.getChartData('revenue', 'Gráfico de Receitas', '#9CCC65');
+    this.expenseChartData = this.getChartData('expense', 'Gráfico de Despesas', '#e03131');
+  }
+
+  private getChartData(entryTyp: string, title: string, color: string) {
+    const chartData = [];
+    this.categories.forEach(category => {
+      const filteredEntries = this.entries.filter(
+        entry => (entry.categoryId === category.id) && (entry.type === entryTyp)
+      );
+
+      if (filteredEntries.length > 0) {
+        const totalAmount = filteredEntries.reduce(
+          (total, entry) => total + currencyFormatter.unformat(entry.amount, { code: 'BRL' }), 0
+        );
+
+        chartData.push({
+          categoryName: category.name,
+          totalAmount: totalAmount
+        });
+      }
+    });
+
+    // O laço acima, retornará algo assim:
+    /*
+      [
+        {
+          categoryName: "BLABLA",
+          totalAmount: 10,4
+        }
+        {
+          categoryName: "BLUBLU",
+          totalAmount: 200
+        }
+      ]
+    */
+
+    return {
+      labels: chartData.map(item => item.categoryName),
+      datasets: [{
+        label: title,
+        backgroundColor: color,
+        data: chartData.map(item => item.totalAmount)
+      }]
+    };
+  }
+
+  protected configureToastr() {
+    toastr.options.closeButton = true;
+    toastr.options.progressBar = true;
+    toastr.options.positionClass = 'toast-bottom-left';
+    toastr.options.extendedTimeOut = 0;
+    toastr.options.timeOut = 2000;
+    toastr.options.fadeOut = 250;
+    toastr.options.fadeIn = 250;
   }
 
 }
