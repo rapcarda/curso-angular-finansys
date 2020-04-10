@@ -4,8 +4,8 @@
             <a [routerLink]="['/']">Home</a>
         </li>
 
-        <li *ngFor="let item of items" class="breadcrum-item" [class.active]="isLastItem(item)">
-            <span **ngIf="isLastItem(item);else isNotLastItem">{{item.text}}</span>
+        <li *ngFor="let item of items" class="breadcrumb-item" [class.active]="isLastItem(item)">
+            <span *ngIf="isLastItem(item);else isNotLastItem">{{item.text}}</span>
             <ng-template #isNotLastItem><a [routerLink]="item.link">{{item.text}}</a></ng-template>
         </li>
     </ol>
